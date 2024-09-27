@@ -1,6 +1,7 @@
 # Same Same Game
 
 ## Screen Shot
+![screenshot](./screenshot.png)
 
 ## core function
 - neighbor() - 주위가 같은 색이면 marking 함
