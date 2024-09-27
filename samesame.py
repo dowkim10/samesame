@@ -1,7 +1,9 @@
+# sprite image
+# https://opengameart.org/content/tiny-planet-pack
+
 import sys
 import pygame
 import random
-
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -12,6 +14,49 @@ GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 CYAN = (0, 255, 255)
 
+class Ball:
+    WIDTH = 64
+    HEIGHT = 64
+    SPEED = 2
+    def __init__(self):
+        self.spr = []
+        self.progress = 0
+        baseimgs = []
+        img = pygame.image.load(f"png/Uranus-64x64.png")
+        baseimgs.append(img)
+        img = pygame.image.load(f"png/Earth-64x64.png")
+        baseimgs.append(img)
+        img = pygame.image.load(f"png/Saturn-64x64.png")
+        baseimgs.append(img)
+        img = pygame.image.load(f"png/Sun-64x64.png")
+        baseimgs.append(img)
+                
+        for i in range(4):
+            imglist = []            
+            for j in range(6):
+                img = pygame.Surface((Ball.WIDTH, Ball.HEIGHT))
+                img.blit(baseimgs[i], (0, 0), (j * Ball.WIDTH, 0, Ball.WIDTH, Ball.HEIGHT))
+                img_scaled = pygame.transform.scale(img, (40 , 40))
+                imglist.append(img_scaled)
+            
+            self.spr.append(imglist)
+    
+    def draw(self, screen, posX, posY, index, marking):
+        if marking:
+            screen.blit(self.spr[index][int(self.progress/Ball.SPEED)], (posX, posY))
+        else:
+            screen.blit(self.spr[index][5], (posX, posY))
+    
+    def update(self):        
+        if self.progress == 6 * Ball.SPEED - 1:
+            self.progress = 0
+        else:        
+            self.progress += 1
+    
+                
+    
+            
+        
 class Board:
     StartX = 100
     StartY = 100
@@ -25,7 +70,7 @@ class Board:
                 line.append([1, random.randrange(4), 0])
             self.element.append(line)
     
-    def draw(self, screen):
+    def draw(self, screen, ball):
         for i in range(10):
             for j in range(20):
                 if self.element[i][j][0] != 0:
@@ -34,8 +79,12 @@ class Board:
                     else:
                         color = Board.colors[self.element[i][j][1]]
                         
-                    rect = pygame.Rect(Board.StartX + 40*j, Board.StartY + 40*i, 40, 40)
-                    pygame.draw.rect(screen, color, rect )
+                    #rect = pygame.Rect(Board.StartX + 40*j, Board.StartY + 40*i, 40, 40)
+                    #pygame.draw.rect(screen, color, rect )
+                    index = self.element[i][j][1]
+                    marking = self.element[i][j][2]
+                    ball.draw(screen, Board.StartX + 40*j, Board.StartY + 40*i, index, marking)
+              
                 
     def neighbor(self, elim):
         list = []
@@ -130,14 +179,23 @@ class Board:
                     self.remove_oneblock(i,j)
         
         # check null column and shift
-        for j in range(19):
+        j = 0
+        max_col = 0
+        while j < 20:
+        #for j in range(19):
             sum = 0
             for i in range(10):
                 sum += self.element[i][j][0]
                 
-            if sum == 0:
+            if sum == 0:                
                 self.remove_column(j)
                 
+                max_col += 1
+                if max_col > 19:
+                    break                
+            else:
+                j += 1
+               
     def handleMouseDown(self):
         mouseX, mouseY = pygame.mouse.get_pos()
         col = int((mouseX - Board.StartX) / 40)
@@ -177,6 +235,7 @@ def main():
     clock = pygame.time.Clock()
     
     board = Board()
+    ball = Ball()
     #print(board.element)
     #board.draw(screen)
     
@@ -192,7 +251,8 @@ def main():
                 board.handleMouseMove()
         
         screen.fill(BLACK)
-        board.draw(screen)
+        ball.update()
+        board.draw(screen, ball)
         pygame.display.flip()
         #pygame.display.update()
     
